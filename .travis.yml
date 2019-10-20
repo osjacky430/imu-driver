@@ -8,6 +8,6 @@ before_install:
     - export PATH="$PATH:$HOME/gcc-arm-none-eabi-8-2019-q3-update-linux/bin"
 
 script:
-    - cd imu_driver/build
+    - cd $TRAVIS_BUILD_DIR/build
     - cmake -DBUILD_STATIC_LIBRARY=ON ..
     - cmake --build

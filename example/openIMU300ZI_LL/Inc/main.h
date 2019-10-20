@@ -57,7 +57,7 @@
 #include "stm32f4xx_ll_utils.h"
 
 /* USER CODE BEGIN Includes */
-#include "imu_driver/include/port/ll_imu_driver.h"
+#include "imu_driver/include/port/LL/ll_imu_driver.h"
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/

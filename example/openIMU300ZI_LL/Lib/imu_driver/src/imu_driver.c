@@ -110,11 +110,11 @@ ImuDriverStatus imuDriverDestroy(ImuDriverPtr* t_imu_ptr) {
 }
 
 ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
-	Gpio* ready_io = &t_imu->m_msgInterface.dataReady;
-	Gpio* slave_io = &t_imu->m_msgInterface.slaveSelect;
-	bool data_ready = t_imu->m_msgInterface.readInputPin(ready_io->port, ready_io->pin);
+	Gpio ready_io = t_imu->m_msgInterface.dataReady;
+	Gpio slave_io = t_imu->m_msgInterface.slaveSelect;
+	bool data_ready = t_imu->m_msgInterface.readInputPin(ready_io.port, ready_io.pin);
 
-	if (data_ready == 0) {	// the data ready pin is pulled low when it is ready to transfer
+	if (data_ready == 0) {	// drdy pin is pulled low when data is ready
 		void* comm_interface = t_imu->m_msgInterface.comInterfaceType;
 		uint8_t max_data = 0U;
 		uint16_t burst_read_reg = 0U;
@@ -123,16 +123,15 @@ ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
 			max_data = 8U;
 			burst_read_reg = m_imuDriverSpiGenReadCmd(ReadBurstDataRegister);
 		} else {
-			// TODO: implement extended burst data transfer
 			max_data = 11U;
 			burst_read_reg = m_imuDriverSpiGenReadCmd(ReadExtBurstDataRegister);
 		}
 
-		t_imu->m_msgInterface.clearPin(slave_io->port, slave_io->pin);	// start transmission
+		t_imu->m_msgInterface.clearPin(slave_io.port, slave_io.pin);  // start transmission
 		t_imu->m_msgInterface.spiXfer(comm_interface, burst_read_reg);
 		static int data_count = 0;
 
-		while (data_count < max_data) {	 // polling, TODO interrupt-base method?
+		while (data_count < max_data) {	 // polling, @TODO interrupt-base method?
 			uint16_t data = t_imu->m_msgInterface.spiXfer(comm_interface, 0x0000);
 			switch (data_count) {
 				case 0:
@@ -159,15 +158,14 @@ ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
 		}
 
 		data_count = 0;
-
-		t_imu->m_msgInterface.setPin(slave_io->port, slave_io->pin);  // end transmission
+		t_imu->m_msgInterface.setPin(slave_io.port, slave_io.pin);	// end transmission
 		return ImuDriverStatusOk;
 	} else {
 		return ImuDriverDataNotReady;
 	}
 }
 
-ImuData imuDriverGetImuData(const ImuDriverPtr t_imu) { return t_imu->m_data; }
+ImuData imuDriverGetImuData(const ImuDriverPtr t_imu) { return t_imu ? t_imu->m_data : (ImuData){}; }
 
 MessageFramework imuDriverGetFramework(const ImuDriverPtr t_imu) {
 	return t_imu != NULL ? t_imu->m_msgFramework : FrameworkNone;

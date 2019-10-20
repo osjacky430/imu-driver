@@ -1,0 +1,13 @@
+# osx file
+.DS_Store
+
+# build folder
+build/
+
+# eclipse project settings
+example/ll driver/Debug
+example/ll driver/.cproject
+example/ll driver/.settings
+example/ll driver/.mxproject
+example/ll driver/.osx.project
+example/ll driver/.project

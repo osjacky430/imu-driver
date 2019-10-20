@@ -54,5 +54,5 @@ TEST(ImuDriverInitialization, variable_is_initialized_correctly_will_not_throw_a
 }
 
 TEST(ImuDriverInitialization, null_interface_will_throw_assertion_error) {
-	// ASSERT_DEATH(imuDriverCreate(FrameworkSpi, 0), "");
+	ASSERT_DEATH(imuDriverCreate(FrameworkSpi, 0), "");
 }

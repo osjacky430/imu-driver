@@ -15,6 +15,8 @@ before_script:
     - arm-none-eabi-ld --version
 
 script:
-    - mkdir $TRAVIS_BUILD_DIR/build && cd $TRAVIS_BUILD_DIR/build
+    - cd $TRAVIS_BUILD_DIR
+    - rm -rf build
+    - mkdir build && cd build
     - cmake -DBUILD_STATIC_LIBRARY=ON ..
     - cmake --build ./

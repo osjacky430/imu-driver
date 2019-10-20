@@ -1,14 +1,13 @@
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
-set(COMPILER_PATH   "/Users/osjacky430/Library/xPacks/@xpack-dev-tools/arm-none-eabi-gcc/8.3.1-1.1.1/.content/bin/")
 set(COMPILER_PREFIX arm-none-eabi-)
 
-set(CMAKE_C_COMPILER    ${COMPILER_PATH}${COMPILER_PREFIX}gcc)
-set(CMAKE_CXX_COMPILER  ${COMPILER_PATH}${COMPILER_PREFIX}g++)
-set(CMAKE_LINKER        ${COMPILER_PATH}${COMPILER_PREFIX}ld)
-set(CMAKE_AR            ${COMPILER_PATH}${COMPILER_PREFIX}ar)
-set(CMAKE_RANLIB        ${COMPILER_PATH}${COMPILER_PREFIX}ranlib)
+set(CMAKE_C_COMPILER    ${COMPILER_PREFIX}gcc)
+set(CMAKE_CXX_COMPILER  ${COMPILER_PREFIX}g++)
+set(CMAKE_LINKER        ${COMPILER_PREFIX}ld)
+set(CMAKE_AR            ${COMPILER_PREFIX}ar)
+set(CMAKE_RANLIB        ${COMPILER_PREFIX}ranlib)
 
 set(STM32F4_FLAGS "-mfloat-abi=hard -mfpu=fpv4-sp-d16 -mthumb -mcpu=cortex-m4")
 set(WARNING_FLAGS "-Wall -Wextra -Wimplicit-function-declaration -Wredundant-decls  \

@@ -4,6 +4,9 @@
 # build folder
 build/
 
+# ignore my own build shell script
+build.sh
+
 # eclipse project settings
 Debug
 .cproject

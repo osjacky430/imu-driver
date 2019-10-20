@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 // private function
-static uint16_t m_imuDriverSpiGenWriteCmd(const uint8_t t_reg, const uint8_t t_cmd) {
+__unused static uint16_t m_imuDriverSpiGenWriteCmd(const uint8_t t_reg, const uint8_t t_cmd) {
 	return (((t_reg | (1 << 8U)) << 8U) | t_cmd);
 }
 
@@ -90,7 +90,7 @@ ImuDriverPtr imuDriverCreate(const MessageFramework t_fw, const ImuInterfacePtr 
 		assert(t_interface != NULL);
 
 		obj->m_msgFramework = t_fw;
-		obj->m_msgInterface = *t_interface;  // copy
+		obj->m_msgInterface = *t_interface;	 // copy
 	}
 
 	return obj;
@@ -114,7 +114,7 @@ ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
 	Gpio slave_io = t_imu->m_msgInterface.slaveSelect;
 	bool data_ready = t_imu->m_msgInterface.readInputPin(ready_io.port, ready_io.pin);
 
-	if (data_ready) {
+	if (data_ready == 0) {	// drdy pin is pulled low when data is ready
 		void* comm_interface = t_imu->m_msgInterface.comInterfaceType;
 		uint8_t max_data = 0U;
 		uint16_t burst_read_reg = 0U;
@@ -131,7 +131,7 @@ ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
 		t_imu->m_msgInterface.spiXfer(comm_interface, burst_read_reg);
 		static int data_count = 0;
 
-		while (data_count < max_data) {  // polling, @TODO interrupt-base method?
+		while (data_count < max_data) {	 // polling, @TODO interrupt-base method?
 			uint16_t data = t_imu->m_msgInterface.spiXfer(comm_interface, 0x0000);
 			switch (data_count) {
 				case 0:
@@ -157,12 +157,15 @@ ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
 			++data_count;
 		}
 
-		t_imu->m_msgInterface.setPin(slave_io.port, slave_io.pin);  // end transmission
+		data_count = 0;
+		t_imu->m_msgInterface.setPin(slave_io.port, slave_io.pin);	// end transmission
 		return ImuDriverStatusOk;
 	} else {
 		return ImuDriverDataNotReady;
 	}
 }
+
+ImuData imuDriverGetImuData(const ImuDriverPtr t_imu) { return t_imu ? t_imu->m_data : (ImuData){}; }
 
 MessageFramework imuDriverGetFramework(const ImuDriverPtr t_imu) {
 	return t_imu != NULL ? t_imu->m_msgFramework : FrameworkNone;

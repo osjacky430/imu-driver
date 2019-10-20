@@ -41,7 +41,7 @@ ImuDriverPtr imuDriverCreate(MessageFramework t_fw, const ImuInterfacePtr t_inte
 ImuDriverStatus imuDriverDestroy(ImuDriverPtr* t_imu_ptr);
 
 ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended);
-
+ImuData imuDriverGetImuData(const ImuDriverPtr t_imu);
 MessageFramework imuDriverGetFramework(const ImuDriverPtr t_imu);
 
 #if defined __cplusplus

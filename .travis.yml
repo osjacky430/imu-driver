@@ -3,3 +3,15 @@ branches:
         master
 
 language: C
+
+os:
+    -linux
+
+before_install:
+    - ./.travis-install-arm-gcc
+    - export PATH="$PATH:$HOME/gcc-arm-none-eabi-8-2019-q3-update-linux/bin"
+
+script:
+    - cd build
+    - cmake -DBUILD_STATIC_LIBRARY=ON ..
+    - cmake --build

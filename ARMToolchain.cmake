@@ -5,9 +5,9 @@ set(COMPILER_PREFIX arm-none-eabi-)
 
 set(CMAKE_C_COMPILER    ${COMPILER_PREFIX}gcc)
 set(CMAKE_CXX_COMPILER  ${COMPILER_PREFIX}g++)
-set(CMAKE_LINKER        ${COMPILER_PREFIX}ld)
-set(CMAKE_AR            ${COMPILER_PREFIX}ar)
-set(CMAKE_RANLIB        ${COMPILER_PREFIX}ranlib)
+set(CMAKE_LINKER        ${COMPILER_PREFIX}ld CACHE FILEPATH "")
+set(CMAKE_AR            ${COMPILER_PREFIX}ar CACHE FILEPATH "")
+set(CMAKE_RANLIB        ${COMPILER_PREFIX}ranlib CACHE FILEPATH "")
 
 set(STM32F4_FLAGS "-mfloat-abi=hard -mfpu=fpv4-sp-d16 -mthumb -mcpu=cortex-m4")
 set(WARNING_FLAGS "-Wall -Wextra -Wimplicit-function-declaration -Wredundant-decls  \

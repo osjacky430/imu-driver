@@ -12,6 +12,7 @@ before_install:
 
 before_script:
     - arm-none-eabi-gcc --version
+    - arm-none-eabi-ld --version
 
 script:
     - mkdir $TRAVIS_BUILD_DIR/build && cd $TRAVIS_BUILD_DIR/build

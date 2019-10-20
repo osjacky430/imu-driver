@@ -7,7 +7,10 @@ before_install:
     - ./.travis-install-arm-gcc
     - export PATH="$PATH:$HOME/gcc-arm-none-eabi-8-2019-q3-update-linux/bin"
 
+before_script:
+    - arm-none-eabi-gcc --version
+
 script:
     - mkdir $TRAVIS_BUILD_DIR/build && cd $TRAVIS_BUILD_DIR/build
     - cmake -DBUILD_STATIC_LIBRARY=ON ..
-    - cmake --build ..
+    - cmake --build ./

@@ -1,3 +1,6 @@
+notification:
+    email: false
+
 language: C
 
 os:
@@ -5,7 +8,7 @@ os:
 
 before_install:
     - ./.travis-install-arm-gcc
-    - export PATH="$PATH:$HOME/gcc-arm-none-eabi-8-2019-q3-update-linux/bin"
+    - export PATH="$PATH:$HOME/gcc-arm-none-eabi-8-2019-q3-update/bin"
 
 before_script:
     - arm-none-eabi-gcc --version

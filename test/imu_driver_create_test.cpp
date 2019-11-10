@@ -1,6 +1,5 @@
-#include <gmock/gmock.h>
-
 #include <gtest/gtest.h>
+
 #include "../include/imu_driver.h"
 #include "imu_mock/imu_mock.h"
 

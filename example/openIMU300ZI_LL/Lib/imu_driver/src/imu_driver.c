@@ -1,15 +1,9 @@
 #include "../include/imu_driver.h"
 
+#include <stdbool.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
-
-// private function
-__unused static uint16_t m_imuDriverSpiGenWriteCmd(const uint8_t t_reg, const uint8_t t_cmd) {
-	return (((t_reg | (1 << 8U)) << 8U) | t_cmd);
-}
-
-static uint16_t m_imuDriverSpiGenReadCmd(const uint8_t t_reg) { return (t_reg << 8U); }
 
 // abstract data type definition
 typedef struct ImuInterface {
@@ -30,11 +24,42 @@ typedef struct ImuInterface {
 } ImuInterface;
 
 typedef struct ImuDriver {
-	ImuData m_data;
+	ImuRawData m_imuRawData;
+	AhrsRawData m_ahrsRawData;
 
 	ImuInterface m_msgInterface;
 	MessageFramework m_msgFramework;
+
+	float accelScaler[3], gyroScaler[3], attitudeScaler[3];
+	ImuData m_imuProcessedData;
+	AhrsData m_ahrsProcessedData;
 } ImuDriver;
+
+// private function
+static inline uint16_t m_imuDriverSpiGenWriteCmd(const uint8_t t_reg, const uint8_t t_cmd) {
+	return (((t_reg | (1 << 8U)) << 8U) | t_cmd);
+}
+
+static inline uint16_t m_imuDriverSpiGenReadCmd(const uint8_t t_reg) { return (t_reg << 8U); }
+
+static inline bool m_imuDriverSpiCheckDataReady(const ImuDriverPtr t_imu) {
+	Gpio ready_io = t_imu->m_msgInterface.dataReady;
+
+	return t_imu->m_msgInterface.readInputPin(ready_io.port, ready_io.pin) == 0;
+}
+
+static inline void m_imuDriverProcessImuRawData(const ImuDriverPtr t_imu) {
+	for (int i = 0; i < 3; ++i) {
+		t_imu->m_imuProcessedData.accel[i] = t_imu->m_imuRawData.accel[i] / t_imu->accelScaler[i];
+		t_imu->m_imuProcessedData.rate[i] = t_imu->m_imuRawData.rate[i] / t_imu->gyroScaler[i];
+	}
+}
+
+static inline void m_imuDriverProcessAhrsRawData(const ImuDriverPtr t_imu) {
+	for (int i = 0; i < 3; ++i) {
+		t_imu->m_ahrsProcessedData.attitude[i] = t_imu->m_ahrsRawData.attitude[i] / t_imu->attitudeScaler[i];
+	}
+}
 
 // Imu interface member function
 ImuInterfacePtr imuInterfaceCreate(Gpio t_rst, GpioFuncPtr t_clear, GpioFuncPtr t_set) {
@@ -90,7 +115,13 @@ ImuDriverPtr imuDriverCreate(const MessageFramework t_fw, const ImuInterfacePtr 
 		assert(t_interface != NULL);
 
 		obj->m_msgFramework = t_fw;
-		obj->m_msgInterface = *t_interface;  // copy
+		obj->m_msgInterface = *t_interface;	 // copy
+
+		for (int i = 0; i < 3; ++i) {
+			obj->accelScaler[i] = DEFAULT_IMU_ACCEL_SCALER;
+			obj->gyroScaler[i] = DEFAULT_IMU_GYRO_SCALER;
+			obj->attitudeScaler[i] = DEFAULT_AHRS_ATTITUDE_SCALER;
+		}
 	}
 
 	return obj;
@@ -110,11 +141,9 @@ ImuDriverStatus imuDriverDestroy(ImuDriverPtr* t_imu_ptr) {
 }
 
 ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
-	Gpio ready_io = t_imu->m_msgInterface.dataReady;
 	Gpio slave_io = t_imu->m_msgInterface.slaveSelect;
-	bool data_ready = t_imu->m_msgInterface.readInputPin(ready_io.port, ready_io.pin);
 
-	if (data_ready == 0) {  // drdy pin is pulled low when data is ready
+	if (m_imuDriverSpiCheckDataReady(t_imu)) {
 		void* comm_interface = t_imu->m_msgInterface.comInterfaceType;
 		uint8_t max_data = 0U;
 		uint16_t burst_read_reg = 0U;
@@ -123,7 +152,6 @@ ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
 			max_data = 8U;
 			burst_read_reg = m_imuDriverSpiGenReadCmd(ReadBurstDataRegister);
 		} else {
-			// @TODO implement extended burst read
 			max_data = 11U;
 			burst_read_reg = m_imuDriverSpiGenReadCmd(ReadExtBurstDataRegister);
 		}
@@ -132,24 +160,24 @@ ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
 		t_imu->m_msgInterface.spiXfer(comm_interface, burst_read_reg);
 		static int data_count = 0;
 
-		while (data_count < max_data) {  // polling, @TODO interrupt-base method?
+		while (data_count < max_data) {	 // polling, @TODO interrupt-base method?
 			uint16_t data = t_imu->m_msgInterface.spiXfer(comm_interface, 0x0000);
 			switch (data_count) {
 				case 0:
-					t_imu->m_data.status = data;
+					t_imu->m_imuRawData.status = data;
 					break;
 				case 1:
 				case 2:
 				case 3:
-					t_imu->m_data.rate[data_count - 1] = data;
+					t_imu->m_imuRawData.rate[data_count - 1] = data;
 					break;
 				case 4:
 				case 5:
 				case 6:
-					t_imu->m_data.accel[data_count - 4] = data;
+					t_imu->m_imuRawData.accel[data_count - 4] = data;
 					break;
 				case 7:
-					t_imu->m_data.temp = data;
+					t_imu->m_imuRawData.temp = data;
 					break;
 				default:
 					break;
@@ -158,16 +186,82 @@ ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
 			++data_count;
 		}
 
-		data_count = 0;
-		t_imu->m_msgInterface.setPin(slave_io.port, slave_io.pin);  // end transmission
+		t_imu->m_msgInterface.setPin(slave_io.port, slave_io.pin);	// end transmission
+
+		m_imuDriverProcessImuRawData(t_imu);
+
 		return ImuDriverStatusOk;
 	} else {
 		return ImuDriverDataNotReady;
 	}
 }
 
-ImuData imuDriverGetImuData(const ImuDriverPtr t_imu) { return t_imu ? t_imu->m_data : (ImuData){}; }
+ImuDriverStatus imuDriverReceiveAhrsBurstMsg(ImuDriverPtr t_imu) {
+	Gpio slave_io = t_imu->m_msgInterface.slaveSelect;
+
+	if (m_imuDriverSpiCheckDataReady(t_imu)) {
+		void* comm_interface = t_imu->m_msgInterface.comInterfaceType;
+		uint8_t max_data = 5U;
+		uint16_t burst_read_reg = m_imuDriverSpiGenReadCmd(ReadAhrsBurstDataRegister);
+
+		t_imu->m_msgInterface.clearPin(slave_io.port, slave_io.pin);  // start transmission
+		t_imu->m_msgInterface.spiXfer(comm_interface, burst_read_reg);
+
+		static int data_count = 0;
+
+		while (data_count < max_data) {
+			uint16_t data = t_imu->m_msgInterface.spiXfer(comm_interface, 0x0000);
+			switch (data_count) {
+				case 0:
+					t_imu->m_ahrsRawData.status = data;
+					break;
+				case 1:
+				case 2:
+				case 3:
+					t_imu->m_ahrsRawData.attitude[data_count - 1] = data;
+					break;
+				case 4:
+					t_imu->m_ahrsRawData.temp = data;
+					break;
+			}
+
+			++data_count;
+		}
+		t_imu->m_msgInterface.setPin(slave_io.port, slave_io.pin);	// end transmission
+
+		m_imuDriverProcessAhrsRawData(t_imu);
+
+		return ImuDriverStatusOk;
+	} else {
+		return ImuDriverDataNotReady;
+	}
+}
 
 MessageFramework imuDriverGetFramework(const ImuDriverPtr t_imu) {
-	return t_imu != NULL ? t_imu->m_msgFramework : FrameworkNone;
+	assert(t_imu);
+
+	return t_imu->m_msgFramework;
+}
+
+ImuRawData imuDriverGetImuRawData(const ImuDriverPtr t_imu) {
+	assert(t_imu);
+
+	return t_imu->m_imuRawData;
+}
+
+ImuData imuDriverGetImuData(const ImuDriverPtr t_imu) {
+	assert(t_imu);
+	return t_imu->m_imuProcessedData;
+}
+
+AhrsRawData imuDriverGetAhrsRawData(const ImuDriverPtr t_imu) {
+	assert(t_imu);
+
+	return t_imu->m_ahrsRawData;
+}
+
+AhrsData imuDriverGetAhrsProcessedData(const ImuDriverPtr t_imu) {
+	assert(t_imu);
+
+	return t_imu->m_ahrsProcessedData;
 }

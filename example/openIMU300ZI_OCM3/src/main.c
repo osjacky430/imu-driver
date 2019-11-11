@@ -44,7 +44,7 @@ int main() {
 	setup_imu_driver();
 	start_sampling();
 
-	ImuData data;
+	ImuRawData data;
 	while (true) {
 		for (int i = 0; i < 100000; ++i) {
 		}

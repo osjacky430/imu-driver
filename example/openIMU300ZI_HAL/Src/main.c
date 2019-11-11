@@ -112,18 +112,11 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-    ImuData data = imuDriverGetImuData(imu_driver);
+    ImuRawData raw_imu_data = imuDriverGetImuRawData(imu_driver);
+    ImuData imu_data = imuDriverGetImuData(imu_driver);
 
-    float x_rate = (data.rate[0]) / 200.0f;
-    float y_rate = (data.rate[1]) / 200.0f;
-    float z_rate = (data.rate[2]) / 200.0f;
-
-    float x_accel = (data.accel[0]) / 4000.0f;
-    float y_accel = (data.accel[1]) / 4000.0f;
-    float z_accel = (data.accel[2]) / 4000.0f;
-
-    printf("% .3f, % .3f, % .3f, % .3f, % .3f, % .3f, % d\r\n", x_rate, y_rate,
-           z_rate, x_accel, y_accel, z_accel, data.temp);
+    printf("% .3f, % .3f, % .3f, % .3f, % .3f, % .3f, % d\r\n", imu_data.rate[0], imu_data.rate[1],
+           imu_data.rate[2], imu_data.accel[0], imu_data.accel[1], imu_data.accel[2], raw_imu_data.temp);
   }
   /* USER CODE END 3 */
 

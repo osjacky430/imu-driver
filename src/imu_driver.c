@@ -1,5 +1,6 @@
 #include "../include/imu_driver.h"
 
+#include <stdbool.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -44,7 +45,7 @@ static inline uint16_t m_imuDriverSpiGenReadCmd(const uint8_t t_reg) { return (t
 static inline bool m_imuDriverSpiCheckDataReady(const ImuDriverPtr t_imu) {
 	Gpio ready_io = t_imu->m_msgInterface.dataReady;
 
-	return t_imu->m_msgInterface.readInputPin(ready_io.port, ready_io.pin);
+	return t_imu->m_msgInterface.readInputPin(ready_io.port, ready_io.pin) == 0;
 }
 
 static inline void m_imuDriverProcessImuRawData(const ImuDriverPtr t_imu) {

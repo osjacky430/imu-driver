@@ -1,7 +1,14 @@
+/**
+ * @Date:   2019-11-16T11:32:53+08:00
+ * @Email:  osjacky430@gmail.com
+ * @Filename: imu_driver.c
+ * @Last modified time: 2019-11-16T22:13:58+08:00
+ */
+
 #include "../include/imu_driver.h"
 
-#include <stdbool.h>
 #include <assert.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -186,6 +193,7 @@ ImuDriverStatus imuDriverReceiveBurstMsg(ImuDriverPtr t_imu, bool extended) {
 			++data_count;
 		}
 
+		data_count = 0U;
 		t_imu->m_msgInterface.setPin(slave_io.port, slave_io.pin);	// end transmission
 
 		m_imuDriverProcessImuRawData(t_imu);
@@ -227,6 +235,8 @@ ImuDriverStatus imuDriverReceiveAhrsBurstMsg(ImuDriverPtr t_imu) {
 
 			++data_count;
 		}
+
+		data_count = 0U;
 		t_imu->m_msgInterface.setPin(slave_io.port, slave_io.pin);	// end transmission
 
 		m_imuDriverProcessAhrsRawData(t_imu);

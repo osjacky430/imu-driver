@@ -9,8 +9,8 @@ using testing::Return;
 // Hardware driver struct, these structs and numbers are usually defined globally
 static SPI_TypeDef spi_3;
 static GPIO_TypeDef gpio_a;
-static uint8_t gpio_pin_8 = 8U;	// arbitrary pin number for data ready(DRDY) pin
-static uint8_t gpio_pin_9 = 9U;	// arbitrary pin number for slave select(SS) pin
+static uint8_t gpio_pin_8 = 8U;	   // arbitrary pin number for data ready(DRDY) pin
+static uint8_t gpio_pin_9 = 9U;	   // arbitrary pin number for slave select(SS) pin
 static uint8_t gpio_pin_10 = 10U;  // arbitrary pin number for reset (nRST) pin
 
 // Software bridge to hardware
@@ -44,7 +44,7 @@ static uint16_t __ll_spi_xfer(void *t_spi, uint16_t t_cmd) {
 
 // Test
 TEST_F(ImuDriverReceive, imuDriverReceiveMsg_return_ImuDriverDataNotReady_if_DRDY_pin_not_set) {
-	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_GPIO_IsInputPinSet(&gpio_a, gpio_pin_8)).WillOnce(Return(0));
+	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_GPIO_IsInputPinSet(&gpio_a, gpio_pin_8)).WillOnce(Return(1));
 
 	ImuInterfacePtr spi_interface = imuInterfaceCreate(imu_rst, __ll_gpio_clear_pin, __ll_gpio_set_pin);
 	imuInterfaceSetupSpi(spi_interface, &spi_3, __ll_spi_xfer, imu_drdy, imu_ss, __ll_gpio_read_input_pin);
@@ -59,7 +59,7 @@ TEST_F(ImuDriverReceive, imuDriverReceiveMsg_return_ImuDriverDataNotReady_if_DRD
 }
 
 TEST_F(ImuDriverReceive, imuDriverReceiveMsg_return_ImuDriverStatusOk_if_no_error) {
-	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_GPIO_IsInputPinSet(&gpio_a, gpio_pin_8)).WillOnce(Return(1));
+	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_GPIO_IsInputPinSet(&gpio_a, gpio_pin_8)).WillOnce(Return(0));
 	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_SPI_Xfer(&spi_3, 0x3E00))
 		.Times(1)
 		.WillOnce(Return(0));  // First packet of Read operation is N/A
@@ -72,7 +72,7 @@ TEST_F(ImuDriverReceive, imuDriverReceiveMsg_return_ImuDriverStatusOk_if_no_erro
 		.WillOnce(Return(0))
 		.WillOnce(Return(0))
 		.WillOnce(Return(1))	// accel
-		.WillOnce(Return(26));  // temperature
+		.WillOnce(Return(26));	// temperature
 	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_GPIO_ResetOutputPin(&gpio_a, gpio_pin_9));
 	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_GPIO_SetOutputPin(&gpio_a, gpio_pin_9));
 

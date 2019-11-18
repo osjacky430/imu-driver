@@ -43,7 +43,7 @@ static uint16_t __ll_spi_xfer(void *t_spi, uint16_t t_cmd) {
 }
 
 TEST_F(ImuDriverReceive, imuDriverReceiveAhrsMsg_return_ImuDriverDataNotReady_if_DRDY_pin_not_set) {
-	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_GPIO_IsInputPinSet(&gpio_a, gpio_pin_8)).WillOnce(Return(0));
+	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_GPIO_IsInputPinSet(&gpio_a, gpio_pin_8)).WillOnce(Return(1));
 
 	ImuInterfacePtr spi_interface = imuInterfaceCreate(imu_rst, __ll_gpio_clear_pin, __ll_gpio_set_pin);
 	imuInterfaceSetupSpi(spi_interface, &spi_3, __ll_spi_xfer, imu_drdy, imu_ss, __ll_gpio_read_input_pin);
@@ -58,7 +58,7 @@ TEST_F(ImuDriverReceive, imuDriverReceiveAhrsMsg_return_ImuDriverDataNotReady_if
 }
 
 TEST_F(ImuDriverReceive, imuDriverReceiveAhrsMsg_return_ImuDriverStatusOk_if_no_error) {
-	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_GPIO_IsInputPinSet(&gpio_a, gpio_pin_8)).WillOnce(Return(1));
+	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_GPIO_IsInputPinSet(&gpio_a, gpio_pin_8)).WillOnce(Return(0));
 	EXPECT_CALL(*ImuDriverReceive::m_imuMock, m_LL_SPI_Xfer(&spi_3, 0x3D00))
 		.Times(1)
 		.WillOnce(Return(0));  // First packet of Read operation is N/A

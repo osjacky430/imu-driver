@@ -202,7 +202,8 @@ void EXTI9_5_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);
   /* USER CODE BEGIN EXTI9_5_IRQn 1 */
   HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  imuDriverReceiveBurstMsg(imu_driver, false);
+//  imuDriverReceiveBurstMsg(imu_driver, false);
+  imuDriverReceiveAhrsBurstMsg(imu_driver);
   /* USER CODE END EXTI9_5_IRQn 1 */
 }
 

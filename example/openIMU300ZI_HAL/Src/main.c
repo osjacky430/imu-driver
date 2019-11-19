@@ -112,11 +112,12 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-    ImuRawData raw_imu_data = imuDriverGetImuRawData(imu_driver);
-    ImuData imu_data = imuDriverGetImuData(imu_driver);
-
-    printf("% .3f, % .3f, % .3f, % .3f, % .3f, % .3f, % d\r\n", imu_data.rate[0], imu_data.rate[1],
-           imu_data.rate[2], imu_data.accel[0], imu_data.accel[1], imu_data.accel[2], raw_imu_data.temp);
+//    ImuRawData raw_imu_data = imuDriverGetImuRawData(imu_driver);
+//    ImuData imu_data = imuDriverGetImuData(imu_driver);
+	  AhrsData ahrs_data = imuDriverGetAhrsProcessedData(imu_driver);
+	  printf("%.3f, %.3f, %.3f\n\r", ahrs_data.attitude[0], ahrs_data.attitude[1], ahrs_data.attitude[2]);
+//    printf("% .3f, % .3f, % .3f, % .3f, % .3f, % .3f, % d\r\n", imu_data.rate[0], imu_data.rate[1],
+//           imu_data.rate[2], imu_data.accel[0], imu_data.accel[1], imu_data.accel[2], raw_imu_data.temp);
   }
   /* USER CODE END 3 */
 

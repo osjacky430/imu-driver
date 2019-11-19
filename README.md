@@ -1,4 +1,4 @@
-![travis ci](https://travis-ci.org/osjacky430/imu-driver.svg?branch=master)
+[![Build Status](https://travis-ci.org/osjacky430/imu_driver.svg?branch=master)](https://travis-ci.org/osjacky430/imu_driver)
 # IMU driver
 Handles the master side of communication of openIMU300ZI, this is a generic imu driver that can be used on different driver, but mainly for STM32F4. Ports to known driver such as HAL, LL, LibopenCM3 are implemented.
 ## Getting started
